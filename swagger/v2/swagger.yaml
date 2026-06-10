@@ -1,0 +1,124 @@
+---
+openapi: 3.0.1
+info:
+  title: Weather Forecast API
+  version: v2
+  description: API V2 using FlowSubscribers pattern for organized business logic.
+    Returns current weather and 5-day forecast by US zip code.
+paths:
+  "/api/v2/forecast":
+    get:
+      summary: Retrieve weather forecast using FlowSubscribers pattern
+      tags:
+      - Forecasts V2
+      description: |
+        Returns the current weather conditions and a 5-day extended forecast for the given US zip code.
+        This endpoint uses the FlowSubscribers pattern for organized business logic.
+
+        - Results are **cached for 30 minutes** per zip code.
+        - The `cached` field in the response indicates whether the data came from the cache.
+        - Temperatures are returned in **Fahrenheit**.
+      parameters:
+      - name: zip_code
+        in: query
+        required: true
+        description: 5-digit US zip code
+        example: '10001'
+        schema:
+          type: string
+      - name: country_code
+        in: query
+        required: false
+        description: ISO 3166-1 alpha-2 country code (defaults to 'us')
+        example: us
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Forecast retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  zip_code:
+                    type: string
+                    example: '10001'
+                  location:
+                    type: string
+                    example: New York
+                  current_temperature:
+                    type: number
+                    example: 72.5
+                  feels_like:
+                    type: number
+                    example: 70.1
+                  temp_min:
+                    type: number
+                    example: 68.0
+                  temp_max:
+                    type: number
+                    example: 76.0
+                  humidity:
+                    type: integer
+                    example: 55
+                  description:
+                    type: string
+                    example: clear sky
+                  cached:
+                    type: boolean
+                    example: false
+                  extended_forecast:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        date:
+                          type: string
+                          example: '2025-06-10'
+                        temp_min:
+                          type: number
+                          example: 65.0
+                        temp_max:
+                          type: number
+                          example: 76.0
+                        description:
+                          type: string
+                          example: partly cloudy
+                      required:
+                      - date
+                      - temp_min
+                      - temp_max
+                      - description
+                required:
+                - zip_code
+                - location
+                - current_temperature
+                - cached
+        '400':
+          description: Missing or invalid zip code
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Zip code is required
+                required:
+                - error
+        '422':
+          description: Location not found for the given zip code
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Could not find location for zip code 00000
+                required:
+                - error
+servers:
+- url: http://localhost:3000
+  description: Local development
